@@ -17,3 +17,5 @@ def quotes():
             exit()
         print "{0:14} {1:>16} {2:>17}".format(quote['StockSymbol'],quote['LastTradePrice'],quote['LastTradeTime'])
     print
+    raw_input('Press ENTER to continue...')
+    print
