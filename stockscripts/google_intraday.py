@@ -85,12 +85,14 @@ class GoogleIntradayQuote(Quote):
       self.append(dt,open_,high,low,close,volume)
    
   # https://www.google.com/finance/getprices?q=SLW&i=300&p=10d&f=d,o,h,l,c,v
-if __name__ == '__main__':
-  symbol = raw_input('Specify symbol: ')
-  timedayz = raw_input('Specify time period and #days: ').split()
-  nfile = raw_input('Specify filename: ')
-  datelist = [int(n) for n in timedayz]
-  q = GoogleIntradayQuote(symbol,datelist[0],datelist[1])
+def gather_date():  
+  if __name__ == '__main__':
+    symbol = raw_input('Specify ticker: ')
+    timedayz = raw_input('Specify time period and #days: ').split()
+    nfile = raw_input('Specify filename: ')
+    datelist = [int(n) for n in timedayz]
+    q = GoogleIntradayQuote(symbol,datelist[0],datelist[1])
   #q = GoogleIntradayQuote('slw',300,10)
   #np.savetxt('/Users/jame9129/scripts/STOCKDATA/slw.csv', q)                                           # print it out
-q.write_csv(nfile)
+  q.write_csv(nfile)
+  return

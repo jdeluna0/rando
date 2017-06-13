@@ -1,42 +1,11 @@
 #!/usr/bin/env python
 
-from pcandle import pandas_candlestick_ohlc
-import mathmulti_functions as m
 import datetime
-import pandas as pd
-from pandas_datareader import data, wb
+import mathmulti_functions as m
+import google_intraday as g
+from pcandle import pandas_candlestick_ohlc
 from cur_quotes import quotes
-
-### Returns multiple pandas dataframes
-def stocklist():
-    d = raw_input('Enter the symbols you want to analyze separated by a space: ').split()
-    a = []
-    dicti = {}
-    for n in d:
-        b = n.lower()
-        try:
-            b = data.DataReader(n.upper(), "google", start, end)
-        except:
-            print
-            print "{0} ticket not found.".format(n)
-            print
-            continue
-        a.append(b)
-        dicti[n.upper()] = b["Close"]
-    stocks = pd.DataFrame(dicti)
-    return stocks
-
-### Returns a single pandas dataframe
-def single():
-    symbol = raw_input('Enter a single stock symbol: ')
-    try:
-        symbol = data.DataReader(symbol.upper(), "google", start, end)
-    except:
-        print
-        print "{0} ticket not found.".format(symbol)
-        print 
-        return
-    return symbol
+from stock_data import stocklist,single
 
 def init_dates():
     choose_date = raw_input('Date to begin data collection in the format MM DD YYYY: ')
@@ -65,40 +34,35 @@ while True:
         tup = init_dates()
         start = tup[0]
         end = tup[1]
-        symbol = single()
+        symbol = single(start,end)
         pandas_candlestick_ohlc(symbol)
     elif opt == 'A':
         tup = init_dates()
         start = tup[0]
         end = tup[1]
-        symbol = single()
+        symbol = single(start,end)
         m.move_avg(symbol, end)
     elif opt == 'I':
-        symbol = raw_input('Enter a single stock symbol: ').upper()
-        interval = raw_input('Choose number of days to analyze and a time interval in seconds(DD SS): ').split()
-        spread = get_google_data(symbol,300,10)
-        f = raw_input('Choose number of entries to analyze: ')
-        f = int(f)
-        print spread.head(f)
+        g.gather_data()
     
     # Multiple Stock Analysis
     elif opt == 'R':
         tup = init_dates()
         start = tup[0]
         end = tup[1]
-        stocks = stocklist()
+        stocks = stocklist(start,end)
         m.stock_return(stocks)
     elif opt == 'L':
         tup = init_dates()
         start = tup[0]
         end = tup[1]
-        stocks = stocklist()
+        stocks = stocklist(start,end)
         m.log_price(stocks)
     elif opt == 'P':
         tup = init_dates()
         start = tup[0]
         end = tup[1]
-        stocks = stocklist()
+        stocks = stocklist(start,end)
         m.prices(stocks)
 
 
