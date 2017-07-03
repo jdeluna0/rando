@@ -5,20 +5,23 @@ from pathlib import Path
 import warnings
 from collections import defaultdict
 import sys
+import os
 
 SSO = 'jame9129'
-ACCT = '34231' # Walmart Inkiru
+#ACCT = '' 
+#ACCT = '34231' # Walmart Inkiru
 #ACCT = '3022692' # Walmart Store Returns
 #ACCT = '970854' # Walmart CAP
-#ACCT = '858926' # EA
+ACCT = '858926' # EA
 #ACCT = '814851' # Glassdoor
 #ACCT = '815298' # Hilton Grand Vacations
 
 def get_token():
     ### Commented section saves the token so you don't have to keep entering your RSA. Not secure but convenient... ###
-#    token_file = Path("/Users/jame9129/.tokens/coretoken.txt")
+#    homedir = os.path.expanduser('~')
+#    token_file = Path(homedir+'/.tokens/coretoken.txt')
 #    if token_file.is_file():
-#        with file("/Users/jame9129/.tokens/coretoken.txt") as f:
+#        with file(homedir+'/.tokens/coretoken.txt') as f:
 #            test_token = f.read()
 #        req = requests.get("https://ws.core.rackspace.com/ctkapi/session/{0}".format(test_token))
 #        validate_token = json.loads(req.content)
@@ -31,15 +34,15 @@ def get_token():
     url = "https://ws.core.rackspace.com/ctkapi/login/{0}".format(SSO)
     req = requests.post(url, json=payload, headers=header)
     token = json.loads(req.content)["authtoken"]
-#    f = open( '/Users/jame9129/.tokens/coretoken.txt', 'w' )
-#    f.write(token)
+ #   f = open(homedir+'/.tokens/coretoken.txt', 'w' )
+ #   f.write(token)
     return token
 
 def logout():
     url = "https://ws.core.rackspace.com/ctkapi/logout/{0}".format(token)
     req = requests.get(url)
-    print req
-    print req.text
+    print req.content
+    return
 
 def device_count(dc, groups_dict):
     print dc
@@ -54,6 +57,7 @@ def platforms(token, option=''):
     
     offset = 0
     devices_dict = {}
+    ### While loop requests account devices until an empty list is returned, RS CTKAPI has a default return value of 250 
     while offset != -1:
 
         payload = [
@@ -74,9 +78,9 @@ def platforms(token, option=''):
                                 "number",
                                 "name",
                                 "datacenter.symbol",
-                                "status.name",
-                                "account.number",
-                                "account.name",
+                            #    "status.name",
+                            #    "account.number",
+                            #    "account.name",
                                 "platform_model"]
                 }
             ]
@@ -87,8 +91,8 @@ def platforms(token, option=''):
             print response["error_message"]
             exit()
 
-        for device_stats in response: #format of response are dicts within a dict within a list
-            if not device_stats['result']: #checks if device list is empty
+        for device_stats in response: 
+            if not device_stats['result']: 
                 offset = -1
                 break
             offset = offset + 250
@@ -98,7 +102,8 @@ def platforms(token, option=''):
                 else:
                     devices_dict[computers['datacenter.symbol']].append((computers['platform_model'],computers['name']))
     
-    ### Out of while loop
+    ### End of while loop
+
     if option == '--count' or option == '-c':
         for datacenter in devices_dict.keys():
             groups_dict = defaultdict(list)
@@ -111,26 +116,37 @@ def platforms(token, option=''):
         groups_dict = defaultdict(list)
         for platform,name in devices_dict[datacenter]:
             groups_dict[platform].append(name)
-
-        print datacenter
+        print 
         for keys in groups_dict.keys():
             print
-            print '\t',keys
-            print
             for item in groups_dict[keys]:
-                print '\t\t',item
+                print '{0},{1},{2}'.format(datacenter,keys,item)
     return
 
 if __name__ == "__main__":
+
+    option = ''
     if len(sys.argv) > 1:
         option = sys.argv[1]
     if option == '-h' or option == '--help':
-        print 'Usage: {0} [options]\n\nRunning the script without arguments will return a list of hostnames for each platform\n\nOptions:\n\t-c\tLists a count of account devices per platform organized by datacenter\n\t-l\tInvalidates token on local machine\n'.format(sys.argv[0])
+        print
+        print 'Usage: {0} [options]\n\n \
+                Running the script without arguments will return a list of hostnames for each platform\n\n \
+                Options:\n\t \
+                -c\tLists counts of devices per platform\n\t \
+                -l\tInvalidates token on local machine\n'.format(sys.argv[0])
         exit()
+
+    if SSO == '':
+        print
+        print "SSO may be defined at beginning of script to skip this prompt"
+        print
+        SSO = raw_input('Enter SSO username: ')
+    if ACCT == '':
+        ACCT = raw_input('Enter account number: ')
 
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore")
-        
        
         token = get_token()
         if option == '-l' or option == '--logout':
